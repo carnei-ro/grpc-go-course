@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+	"strconv"
 	"context"
 	"net"
 	"log"
@@ -37,4 +39,20 @@ func main(){
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
+}
+
+func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
+	fmt.Printf("GreetManyTimes function was invoked with %v \n", req)
+
+	firstName := req.GetGreeting().GetFirstName()
+
+	for i := 0; i < 10; i++ {
+		result := "Hello " + firstName + ". For the " + strconv.Itoa(i) + " time"
+		res := &greetpb.GreetManyTimesResponse {
+			Result: result,
+		}
+		stream.Send(res)
+		time.Sleep(1000 * time.Millisecond)
+	}
+	return nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"google.golang.org/grpc"
 	"net"
 	"github.com/carnei-ro/grpc-go-course/calculator/calculatorpb"
@@ -10,12 +11,31 @@ import (
 
 type server struct{}
 
-func (*server) Calc(ctx context.Context, req *calculatorpb.CalcRequest) (*calculatorpb.CalcResponse, error) {
-	first := req.GetCalc().GetFirst()
-	second := req.GetCalc().GetSecond()
+func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositionRequest, stream calculatorpb.CalcService_PrimeNumberDecompositionServer) error {
+	fmt.Printf("Received PrimeNumberDecomposition RPC: %v\n", req)
+	number := req.GetNumber()
+	divisor := int64(2)
+
+	for number > 1 {
+		if number % divisor == 0 {
+			stream.Send(&calculatorpb.PrimeNumberDecompositionResponse {
+				PrimeFactor: divisor,
+			})
+			number = number / divisor
+		} else {
+			divisor++
+			fmt.Printf("Divisor has increased to: %v\n", divisor) //log make it slower - in the client side can be 
+		}
+	}
+	return nil
+}
+
+func (*server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
+	first := req.GetFirst()
+	second := req.GetSecond()
 	result := first + second
 
-	res := &calculatorpb.CalcResponse {
+	res := &calculatorpb.SumResponse {
 		Result: result,
 	}
 
